@@ -9,12 +9,19 @@ Route::get('/hello', function (Request $request) {
     $visitor_name = $request->query('visitor_name', 'Alemsbaja');
     $client_ip = $request->ip();
 
+
     $ip_info = Http::get("http://ipinfo.io/{$client_ip}?token=" . env('IP_INFO_TOKEN'));
     $ip_info_response = json_decode($ip_info->getBody(), true);
+    if ($ip_info_response['bogon']) {
+        return response()->json([
+            'message' => "This IP address: {$client_ip} is bogon. It is reserved for special use, such as for local or private networks, and should not appear on the public internet",
+        ]);
+    }
+
     $city = $ip_info_response['city'] ?? 'Unknown';
     $loc = explode(',', $ip_info_response['loc']);
 
-    $weather_info = Http::get("https://api.openweathermap.org/data/2.5/weather?lat={$loc[0]}&lon={$loc[1]}&appid=".env('WEATHER_API_TOKEN'));
+    $weather_info = Http::get("https://api.openweathermap.org/data/2.5/weather?lat={$loc[0]}&lon={$loc[1]}&appid=" . env('WEATHER_API_TOKEN'));
     $weather_info_response = json_decode($weather_info->getBody(), true);
     $temperature = $weather_info_response['main']['temp'] ?? 'N/A';
 

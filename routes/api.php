@@ -5,14 +5,12 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
 
 Route::get('/hello', function (Request $request) {
-
     $visitor_name = $request->query('visitor_name', 'Alemsbaja');
-    $client_ip = $request->ip();
-
+    $client_ip =$request->server->get('HTTP_FLY_CLIENT_IP');
 
     $ip_info = Http::get("http://ipinfo.io/{$client_ip}?token=" . env('IP_INFO_TOKEN'));
     $ip_info_response = json_decode($ip_info->getBody(), true);
-    if ($ip_info_response['bogon']) {
+    if (isset($ip_info_response['bogon'])) {
         return response()->json([
             'message' => "This IP address: {$client_ip} is bogon. It is reserved for special use, such as for local or private networks, and should not appear on the public internet",
         ]);
